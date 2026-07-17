@@ -11,7 +11,7 @@
 dotnet add package Soenneker.Monday.GraphQlClientUtil
 ```
 
-The parameterless `Get()` uses `Monday:ApiKey` and `Monday:ClientBaseUrl`. For a multi-tenant application such as Leadping, pass each tenant's connection explicitly:
+The parameterless `Get()` uses `Monday:ApiKey` and `Monday:ClientBaseUrl`. For a multi-tenant application, pass each tenant's connection explicitly:
 
 ```csharp
 MondayGraphQlClient tenantClient = await mondayGraphQlClientUtil.Get(tenantApiKey, tenantBaseUrl);
