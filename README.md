@@ -1,10 +1,11 @@
 [![](https://img.shields.io/nuget/v/soenneker.monday.graphqlclientutil.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.monday.graphqlclientutil/)
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.monday.graphqlclientutil/publish-package.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.monday.graphqlclientutil/actions/workflows/publish-package.yml)
 [![](https://img.shields.io/nuget/dt/soenneker.monday.graphqlclientutil.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.monday.graphqlclientutil/)
+[![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.monday.graphqlclientutil/codeql.yml?style=for-the-badge&label=codeql)](https://github.com/soenneker/soenneker.monday.graphqlclientutil/actions/workflows/codeql.yml)
 
 # Soenneker.Monday.GraphQlClientUtil
 
-A .NET thread-safe singleton GraphQL client.
+Creates and caches authenticated Monday GraphQL clients, including clients for multiple tokens or endpoints.
 
 ## Install
 
@@ -12,35 +13,34 @@ A .NET thread-safe singleton GraphQL client.
 dotnet add package Soenneker.Monday.GraphQlClientUtil
 ```
 
-## Quick start
+## Configuration
 
-```csharp
-using Soenneker.Monday.GraphQlClientUtil.Registrars;
-using Microsoft.Extensions.DependencyInjection;
-
-var services = new ServiceCollection();
-var result = services.AddMondayGraphQlClientUtilAsSingleton();
+```json
+{
+  "Monday": {
+    "ApiKey": "your-api-key"
+  }
+}
 ```
 
-Adds `MondayGraphQlClientUtil` as a singleton service.
+## Usage
 
-## What you get
+```csharp
+using Soenneker.Monday.GraphQlClient;
+using Soenneker.Monday.GraphQlClientUtil.Abstract;
+using Soenneker.Monday.GraphQlClientUtil.Registrars;
 
-- `IMondayGraphQlClientUtil` — A .NET thread-safe singleton GraphQL client.
-- `MondayGraphQlClientUtilRegistrar` — A .NET thread-safe singleton GraphQL client.
+services.AddMondayGraphQlClientUtilAsSingleton();
 
-## API at a glance
+IMondayGraphQlClientUtil monday = serviceProvider
+    .GetRequiredService<IMondayGraphQlClientUtil>();
 
-| API | What it does | Result / important behavior |
-| --- | --- | --- |
-| `IMondayGraphQlClientUtil.Get(apiKey, cancellationToken)` | Gets a cached client for a specific Monday API key using the configured base URL. | A task whose result is the requested monday Graph Ql Client. |
-| `IMondayGraphQlClientUtil.Get(apiKey, baseUrl, cancellationToken)` | Gets a cached client for a specific Monday connection. | A task whose result is the requested monday Graph Ql Client. |
-| `MondayGraphQlClientUtilRegistrar.AddMondayGraphQlClientUtilAsSingleton(services)` | Adds `MondayGraphQlClientUtil` as a singleton service. | The same service collection, so additional registrations can be chained. |
-| `MondayGraphQlClientUtilRegistrar.AddMondayGraphQlClientUtilAsScoped(services)` | Adds `MondayGraphQlClientUtil` as a scoped service. | The same service collection, so additional registrations can be chained. |
+MondayGraphQlClient client = await monday.Get(cancellationToken);
+var boards = await client.GetBoards.GetValue(
+    new GetBoardsVariables { Limit = 25 },
+    cancellationToken);
+```
 
-## Practical notes
+Use `Get(apiKey)` for another token or `Get(apiKey, baseUrl)` for another Monday connection. Equivalent connection settings reuse the same generated client within the utility's lifetime.
 
-- Cancellation stops pending work; it does not undo work that has already completed.
-- Reuse the registered client instead of constructing one per operation.
-- Calls that return a cached or singleton value reuse the same instance until the owning service is disposed.
-- Dispose instances you own when their scope ends so held resources can be released.
+Scoped registration creates a generated-client cache per application scope while retaining the shared HTTP provider. Disposing the scoped utility does not remove that shared provider or its clients.
