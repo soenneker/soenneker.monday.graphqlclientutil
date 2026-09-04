@@ -11,6 +11,7 @@ using Soenneker.Monday.HttpClients.Abstract;
 
 namespace Soenneker.Monday.GraphQlClientUtil;
 
+/// <inheritdoc cref="IMondayGraphQlClientUtil" />
 public sealed class MondayGraphQlClientUtil : IMondayGraphQlClientUtil
 {
     private readonly SingletonDictionary<MondayGraphQlClient> _clients;
