@@ -37,7 +37,7 @@ public sealed class MondayGraphQlClientUtil : IMondayGraphQlClientUtil
 
     public ValueTask<MondayGraphQlClient> Get(CancellationToken cancellationToken = default)
     {
-        return Get(_configuration.GetValueStrict<string>("Monday:ApiKey"), _baseUrl, cancellationToken);
+        return Get(_configuration.GetStringStrict("Monday:ApiKey"), _baseUrl, cancellationToken);
     }
 
     public ValueTask<MondayGraphQlClient> Get(string apiKey, CancellationToken cancellationToken = default)
